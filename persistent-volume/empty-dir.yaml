@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    name: nginx
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: log-data
+              mountPath: "/var/log"
+          command: ["sh", "-c"]
+          args:
+            - while true; do
+              echo "$(date) info of data" >> /var/log/myapp.log;
+              sleep 5;
+              done;
+        - name: log-sidecar
+          image: busybox:1.28
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          command: ["sh", "-c"]
+          args:
+            - tail -f  /var/sidecar/myapp.log
+          volumeMounts:
+            - name: log-data
+              mountPath: "/var/sidecar"
+      volumes:
+        - name: log-data
+          emptyDir: {}

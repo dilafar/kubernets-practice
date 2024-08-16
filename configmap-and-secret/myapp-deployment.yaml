@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp
+spec:
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+    spec:
+      containers:
+        - name: myapp
+          image: busybox:1.28
+          resources:
+            limits:
+              memory: "500Mi"
+              cpu: "500m"
+          command:
+            [
+              "sh",
+              "-c",
+              "printenv MYSQL_USER MYSQL_PWD MYSQL_SERVER ; sleep 10",
+            ]
+          env:
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  key: username
+                  name: db-secret
+            - name: MYSQL_PWD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: db-secret
+            - name: MYSQL_SERVER
+              valueFrom:
+                configMapKeyRef:
+                  key: db_host
+                  name: db-config
